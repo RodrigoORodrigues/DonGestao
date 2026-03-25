@@ -1,4 +1,3 @@
-cat > package.json << 'EOF'
 {
   "name": "don-gestao",
   "private": true,
@@ -28,4 +27,3 @@ cat > package.json << 'EOF'
     "vite": "^5.0.0"
   }
 }
-EOF
