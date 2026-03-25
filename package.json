@@ -1,3 +1,4 @@
+cat > package.json << 'EOF'
 {
   "name": "don-gestao",
   "private": true,
@@ -8,7 +9,6 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  {
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
     "lucide-react": "^0.309.0",
@@ -17,8 +17,7 @@
     "xlsx": "^0.18.5",
     "jszip": "^3.10.1",
     "pdfjs-dist": "^3.11.174"
-  }
-}
+  },
   "devDependencies": {
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
@@ -29,3 +28,4 @@
     "vite": "^5.0.0"
   }
 }
+EOF
