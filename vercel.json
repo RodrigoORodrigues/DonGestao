@@ -1,9 +1,7 @@
-cat > vercel.json << 'EOF'
 {
   "version": 2,
-  "buildCommand": "npm install && npm run build",
+  "buildCommand": "npm run build",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "vite",
   "outputDirectory": "dist"
 }
-EOF
