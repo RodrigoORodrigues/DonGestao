@@ -530,65 +530,135 @@ export default function App() {
     };
 
     const extrairDadosDoTexto = async (texto) => {
-        setCurrentReportId(null); setReportName(`Relatório Automático - ${new Date().toLocaleDateString('pt-PT')}`); setReportPeriod('');
+        setCurrentReportId(null); 
+        setReportName(`Relatório Automático - ${new Date().toLocaleDateString('pt-PT')}`); 
+        setReportPeriod('');
 
-        let textoNormalizado = texto.replace(/\s+/g, ' ').trim(); let textoSemFalsoContrato = textoNormalizado.replace(/Total\s+contrato\s*:/gi, 'Total_Apurado:');
-        const blocosContrato = textoSemFalsoContrato.split(/Contrato\s*:/i); if (blocosContrato.length > 0) blocosContrato.shift();
-        const novosRegistos = []; const clientesParaInserir = []; const nomesClientesExistem = new Set(clientes.map(c => c.nome.toLowerCase()));
+        let textoNormalizado = texto.replace(/\s+/g, ' ').trim(); 
+        let textoSemFalsoContrato = textoNormalizado.replace(/Total\s+contrato\s*:/gi, 'Total_Apurado:');
+        
+        const blocosContrato = textoSemFalsoContrato.split(/Contrato\s*:/i); 
+        if (blocosContrato.length > 0) blocosContrato.shift();
+        
+        const novosRegistos = []; 
+        const clientesParaInserir = []; 
+        const nomesClientesExistem = new Set(clientes.map(c => c.nome.toLowerCase()));
 
         for (let bloco of blocosContrato) {
             try {
-                bloco = bloco.trim(); if (bloco === "") continue;
+                bloco = bloco.trim(); 
+                if (bloco === "") continue;
+                
                 let codCliente = "N/D", nomeCliente = "";
+                
                 const matchNome = bloco.match(/^(\d+)\s*(?:-)?\s*(.+?)(?=\s+Fatura|\s+Proposta|\s+Data|\s+Qtd|\s+Forma|\s+\d{2}\/\d{4})/i);
-                if (matchNome) { codCliente = matchNome[1].trim(); nomeCliente = matchNome[2].trim(); nomeCliente = nomeCliente.replace(/(?:\s+[\d\/\.\-,]+)+$/, '').trim(); }
+                if (matchNome) { 
+                    codCliente = matchNome[1].trim(); 
+                    nomeCliente = matchNome[2].trim(); 
+                    nomeCliente = nomeCliente.replace(/(?:\s+[\d\/\.\-,]+)+$/, '').trim(); 
+                }
                 if(!nomeCliente) continue;
 
-                let codRegistro = Math.floor(100000 + Math.random() * 900000).toString(); let contratoDetectado = codCliente !== "N/D" ? codCliente : "";
+                let codRegistro = Math.floor(100000 + Math.random() * 900000).toString(); 
+                let contratoDetectado = codCliente !== "N/D" ? codCliente : "";
 
                 if(!nomesClientesExistem.has(nomeCliente.toLowerCase())) {
                     nomesClientesExistem.add(nomeCliente.toLowerCase());
-                    clientesParaInserir.push({ codigo: contratoDetectado || codRegistro, nome: nomeCliente, tipo: 'Pessoa jurídica', documento: contratoDetectado, telefone: '', celular: '', email: '', situacao: true, cadastradoEm: dataDeHojeInterna() });
+                    clientesParaInserir.push({ 
+                        codigo: contratoDetectado || codRegistro, 
+                        nome: nomeCliente, 
+                        tipo: 'Pessoa jurídica', 
+                        documento: contratoDetectado, 
+                        telefone: '', 
+                        celular: '', 
+                        email: '', 
+                        situacao: true, 
+                        cadastradoEm: dataDeHojeInterna() 
+                    });
                 }
 
-                let valorTotal = 0, comissao = 0; let vidasDetectadas = "1";
-                const regexValores = /Sem Repique\s+(\d{1,2},\d{2})\s+([\d\.]+,\d{2})\s+([\d\.]+,\d{2})/i; let matchValores = regexValores.exec(bloco);
-                if (matchValores) { valorTotal = parseFloat(matchValores[2].replace(/\./g, '').replace(',', '.')); comissao = parseFloat(matchValores[3].replace(/\./g, '').replace(',', '.')); } 
-                else {
-                    const regexFallback = /(\d{1,2},\d{2})\s+([\d\.]+,\d{2})\s+([\d\.]+,\d{2})\s+Médico/i; let matchFallback = regexFallback.exec(bloco);
-                    if(matchFallback){ valorTotal = parseFloat(matchFallback[2].replace(/\./g, '').replace(',', '.')); comissao = parseFloat(matchFallback[3].replace(/\./g, '').replace(',', '.')); }
+                let valorTotal = 0, comissao = 0; 
+                let vidasDetectadas = "1";
+                
+                const regexValores = /Sem Repique\s+(\d{1,2},\d{2})\s+([\d\.]+,\d{2})\s+([\d\.]+,\d{2})/i; 
+                let matchValores = regexValores.exec(bloco);
+                if (matchValores) { 
+                    valorTotal = parseFloat(matchValores[2].replace(/\./g, '').replace(',', '.')); 
+                    comissao = parseFloat(matchValores[3].replace(/\./g, '').replace(',', '.')); 
+                } else {
+                    const regexFallback = /(\d{1,2},\d{2})\s+([\d\.]+,\d{2})\s+([\d\.]+,\d{2})\s+Médico/i; 
+                    let matchFallback = regexFallback.exec(bloco);
+                    if(matchFallback){ 
+                        valorTotal = parseFloat(matchFallback[2].replace(/\./g, '').replace(',', '.')); 
+                        comissao = parseFloat(matchFallback[3].replace(/\./g, '').replace(',', '.')); 
+                    }
                 }
 
-                const regexVidas = /(?:\s+)(\d+)\s+(?:\d{1,2},\d{2}\s+)?(?:[\d\.]+,\d{2})\s+(?:[\d\.]+,\d{2})/i; let matchVidas = regexVidas.exec(bloco);
-                if (matchVidas) { vidasDetectadas = matchVidas[1]; }
+                const regexVidas = /(?:\s+)(\d+)\s+(?:\d{1,2},\d{2}\s+)?(?:[\d\.]+,\d{2})\s+(?:[\d\.]+,\d{2})/i; 
+                let matchVidas = regexVidas.exec(bloco);
+                if (matchVidas) { 
+                    vidasDetectadas = matchVidas[1]; 
+                }
 
                 if (valorTotal > 0) {
-                    let inicioVigenciaDetectada = ""; const regexDataVigencia = /\b(\d{2}\/\d{2}\/\d{4})\b/; let matchVigencia = regexDataVigencia.exec(bloco);
-                    if (matchVigencia) { const partes = matchVigencia[1].split('/'); inicioVigenciaDetectada = `${partes[2]}-${partes[1]}-${partes[0]}`; }
+                    let inicioVigenciaDetectada = ""; 
+                    const regexDataVigencia = /\b(\d{2}\/\d{2}\/\d{4})\b/; 
+                    let matchVigencia = regexDataVigencia.exec(bloco);
+                    if (matchVigencia) { 
+                        const partes = matchVigencia[1].split('/'); 
+                        inicioVigenciaDetectada = `${partes[2]}-${partes[1]}-${partes[0]}`; 
+                    }
 
                     let vendedorDetectado = "Protetta"; 
                     let parcelaDetectada = "1";
-                    const historicoVendasCliente = vendasList.filter(v => (v.cliente && v.cliente.toLowerCase() === nomeCliente.toLowerCase()) || (codCliente !== "N/D" && v.numero === codCliente));
+                    const historicoVendasCliente = vendasList.filter(v => 
+                        (v.cliente && v.cliente.toLowerCase() === nomeCliente.toLowerCase()) || 
+                        (codCliente !== "N/D" && v.numero === codCliente)
+                    );
 
                     if (historicoVendasCliente.length > 0) {
                         const ultimaVenda = historicoVendasCliente.sort((a,b) => new Date(b.dataVenda) - new Date(a.dataVenda))[0];
                         if (ultimaVenda.corretor && ultimaVenda.corretor !== "Todos") vendedorDetectado = ultimaVenda.corretor;
-                        if (ultimaVenda.parcela) { let numeroAtual = parseInt(ultimaVenda.parcela.toString().replace(/\D/g, '')); if (!isNaN(numeroAtual)) parcelaDetectada = (numeroAtual + 1).toString(); }
+                        if (ultimaVenda.parcela) { 
+                            let numeroAtual = parseInt(ultimaVenda.parcela.toString().replace(/\D/g, '')); 
+                            if (!isNaN(numeroAtual)) parcelaDetectada = (numeroAtual + 1).toString(); 
+                        }
                     }
 
                     novosRegistos.push({ 
-                        cod: codRegistro, contrato: contratoDetectado, codigoOperadora: 'AMIL', vidas: vidasDetectadas,
-                        cliente: nomeCliente, data: "01/2026", situacao: "FATURADO PROTETTA NF", 
-                        loja: "PROTETTA", valorTotal, comissao, vendedor: vendedorDetectado, parcela: parcelaDetectada,
-                        inicioVigencia: inicioVigenciaDetectada, notaFiscal: '', vitalicio: 'Não', assessoria: 'Protetta', formaPagamento: 'Crédito em conta',
-                        servico: 'Plano de Saúde', desconto: '', selected: true
+                        cod: codRegistro, 
+                        contrato: contratoDetectado, 
+                        codigoOperadora: 'AMIL', 
+                        vidas: vidasDetectadas,
+                        cliente: nomeCliente, 
+                        data: "01/2026", 
+                        situacao: "FATURADO PROTETTA NF", 
+                        loja: "PROTETTA", 
+                        valorTotal, 
+                        comissao, 
+                        vendedor: vendedorDetectado, 
+                        parcela: parcelaDetectada,
+                        inicioVigencia: inicioVigenciaDetectada, 
+                        notaFiscal: '', 
+                        vitalicio: 'Não', 
+                        assessoria: 'Protetta', 
+                        formaPagamento: 'Crédito em conta',
+                        servico: 'Plano de Saúde', 
+                        desconto: '', 
+                        selected: true
                     });
                 }
-            } catch (e) { console.warn("Erro bloco:", e); }
+            } catch (e) { 
+                console.warn("Erro bloco:", e); 
+            }
         }
         
-        if(clientesParaInserir.length > 0) { await supabase.from('clientes').insert(clientesParaInserir); await loadFromDB(); }
-        setPdfData(novosRegistos); showAlert("Extrato processado com sucesso! Nomes limpos e parcelas calculadas.");
+        if(clientesParaInserir.length > 0) { 
+            await supabase.from('clientes').insert(clientesParaInserir); 
+            await loadFromDB(); 
+        }
+        setPdfData(novosRegistos); 
+        showAlert("Extrato processado com sucesso! Nomes limpos e parcelas calculadas.");
     };
 
     const toggleSelectAll = (e) => {
@@ -629,6 +699,18 @@ export default function App() {
             desc: descLote 
         }));
         setCurrentView('nfe'); setNfeTab('emitir'); setNfeLog([]);
+    };
+
+    const prepararEmissaoNF = (linha) => {
+        setNfeForm(prev => ({ 
+            ...prev, 
+            nome: linha.cliente, 
+            valor: linha.valorTotal || linha.comissao, 
+            desc: `Referente a comissão / serviços prestados para ${linha.cliente}.` 
+        }));
+        setCurrentView('nfe'); 
+        setNfeTab('emitir'); 
+        setNfeLog([]);
     };
 
     const startEditingRow = (idx, linha) => { setEditRowIndex(idx); setEditRowData({...linha}); };
@@ -749,7 +831,7 @@ export default function App() {
         const selectedRows = pdfData.filter(r => r.selected);
         const dataToPrint = selectedRows.length > 0 ? selectedRows : pdfData;
 
-        let tableHeader = '<tr>';
+        let tableHeader = '<table>';
         Object.keys(printColLabels).forEach(key => {
             if (printCols[key]) tableHeader += `<th>${printColLabels[key]}</th>`;
         });
@@ -963,211 +1045,250 @@ export default function App() {
                             </div>
                         </div>
                         {showVendasFilter && (
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 transition-colors duration-200 animate-in slide-in-from-top-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-                            {/* Loja */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Loja</label>
-                                <select 
-                                    value={vendasFilterForm.loja} 
-                                    onChange={e => setVendasFilterForm({...vendasFilterForm, loja: e.target.value})} 
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"
-                                >
-                                    <option value="Todos">Todos</option>
-                                    <option value="PROTETTA SEGUROS">PROTETTA SEGUROS</option>
-                                    <option value="PROTETTA">PROTETTA</option>
-                                </select>
-                            </div>
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 transition-colors duration-200 animate-in slide-in-from-top-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+                                    {/* Loja */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Loja</label>
+                                        <select 
+                                            value={vendasFilterForm.loja} 
+                                            onChange={e => setVendasFilterForm({...vendasFilterForm, loja: e.target.value})} 
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+                                        >
+                                            <option value="Todos">Todos</option>
+                                            <option value="PROTETTA SEGUROS">PROTETTA SEGUROS</option>
+                                            <option value="PROTETTA">PROTETTA</option>
+                                        </select>
+                                    </div>
 
-                            {/* Código (Registo) */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Código (Registo)</label>
-                                <input 
-                                    type="text" 
-                                    value={vendasFilterForm.codigo} 
-                                    onChange={e => setVendasFilterForm({...vendasFilterForm, codigo: e.target.value})} 
-                                    placeholder="Código do registo"
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
-                                />
-                            </div>
-
-                            {/* Data de venda */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Data de venda</label>
-                                <div className="flex items-center gap-2">
-                                    <input 
-                                        type="date" 
-                                        value={vendasFilterForm.dataInicio} 
-                                        onChange={e => setVendasFilterForm({...vendasFilterForm, dataInicio: e.target.value})} 
-                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
-                                        placeholder="dd/mm/aaaa"
-                                    />
-                                    <span className="text-slate-400 font-medium">até</span>
-                                    <input 
-                                        type="date" 
-                                        value={vendasFilterForm.dataFim} 
-                                        onChange={e => setVendasFilterForm({...vendasFilterForm, dataFim: e.target.value})} 
-                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
-                                        placeholder="dd/mm/aaaa"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Situação */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Situação</label>
-                                <select 
-                                    value={vendasFilterForm.situacao} 
-                                    onChange={e => setVendasFilterForm({...vendasFilterForm, situacao: e.target.value})} 
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"
-                                >
-                                    <option value="Todos">Todos</option>
-                                    <option value="FATURADO PROTETTA NF">FATURADO PROTETTA NF</option>
-                                    <option value="PENDENTE">PENDENTE</option>
-                                    <option value="CANCELADO">CANCELADO</option>
-                                </select>
-                            </div>
-
-                            {/* Cliente */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Cliente</label>
-                                <div className="relative">
-                                    <input 
-                                        type="text" 
-                                        placeholder="Nome do cliente..." 
-                                        value={vendasFilterForm.cliente} 
-                                        onChange={e => setVendasFilterForm({...vendasFilterForm, cliente: e.target.value})} 
-                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500 pr-8" 
-                                    />
-                                    {vendasFilterForm.cliente && (
-                                        <Trash2 
-                                            size={16} 
-                                            onClick={() => setVendasFilterForm({...vendasFilterForm, cliente: ''})} 
-                                            className="absolute right-3 top-2.5 text-slate-400 cursor-pointer hover:text-rose-500 transition-colors" 
+                                    {/* Código (Registo) */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Código (Registo)</label>
+                                        <input 
+                                            type="text" 
+                                            value={vendasFilterForm.codigo} 
+                                            onChange={e => setVendasFilterForm({...vendasFilterForm, codigo: e.target.value})} 
+                                            placeholder="Código do registo"
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
                                         />
-                                    )}
+                                    </div>
+
+                                    {/* Data de venda */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Data de venda</label>
+                                        <div className="flex items-center gap-2">
+                                            <input 
+                                                type="date" 
+                                                value={vendasFilterForm.dataInicio} 
+                                                onChange={e => setVendasFilterForm({...vendasFilterForm, dataInicio: e.target.value})} 
+                                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                                placeholder="dd/mm/aaaa"
+                                            />
+                                            <span className="text-slate-400 font-medium">até</span>
+                                            <input 
+                                                type="date" 
+                                                value={vendasFilterForm.dataFim} 
+                                                onChange={e => setVendasFilterForm({...vendasFilterForm, dataFim: e.target.value})} 
+                                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                                placeholder="dd/mm/aaaa"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Situação */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Situação</label>
+                                        <select 
+                                            value={vendasFilterForm.situacao} 
+                                            onChange={e => setVendasFilterForm({...vendasFilterForm, situacao: e.target.value})} 
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+                                        >
+                                            <option value="Todos">Todos</option>
+                                            <option value="FATURADO PROTETTA NF">FATURADO PROTETTA NF</option>
+                                            <option value="PENDENTE">PENDENTE</option>
+                                            <option value="CANCELADO">CANCELADO</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Cliente */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Cliente</label>
+                                        <div className="relative">
+                                            <input 
+                                                type="text" 
+                                                placeholder="Nome do cliente..." 
+                                                value={vendasFilterForm.cliente} 
+                                                onChange={e => setVendasFilterForm({...vendasFilterForm, cliente: e.target.value})} 
+                                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500 pr-8" 
+                                            />
+                                            {vendasFilterForm.cliente && (
+                                                <Trash2 
+                                                    size={16} 
+                                                    onClick={() => setVendasFilterForm({...vendasFilterForm, cliente: ''})} 
+                                                    className="absolute right-3 top-2.5 text-slate-400 cursor-pointer hover:text-rose-500 transition-colors" 
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Contrato */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Contrato</label>
+                                        <input 
+                                            type="text" 
+                                            value={vendasFilterForm.contrato} 
+                                            onChange={e => setVendasFilterForm({...vendasFilterForm, contrato: e.target.value})} 
+                                            placeholder="Número do contrato"
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                        />
+                                    </div>
+
+                                    {/* Código Operadora */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Código Operadora</label>
+                                        <input 
+                                            type="text" 
+                                            value={vendasFilterForm.codigoOperadora} 
+                                            onChange={e => setVendasFilterForm({...vendasFilterForm, codigoOperadora: e.target.value})} 
+                                            placeholder="Ex: AMIL, Bradesco..."
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                        />
+                                    </div>
+
+                                    {/* Nº Vidas */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">N. vidas</label>
+                                        <input 
+                                            type="number" 
+                                            value={vendasFilterForm.vidas} 
+                                            onChange={e => setVendasFilterForm({...vendasFilterForm, vidas: e.target.value})} 
+                                            placeholder="Quantidade de vidas"
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                        />
+                                    </div>
+
+                                    {/* Vitalício */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Vitalício</label>
+                                        <select 
+                                            value={vendasFilterForm.vitalicio} 
+                                            onChange={e => setVendasFilterForm({...vendasFilterForm, vitalicio: e.target.value})} 
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+                                        >
+                                            <option value="Selecione">Selecione</option>
+                                            <option value="Sim">Sim</option>
+                                            <option value="Não">Não</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Corretor */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Corretor</label>
+                                        <select 
+                                            value={vendasFilterForm.corretor} 
+                                            onChange={e => setVendasFilterForm({...vendasFilterForm, corretor: e.target.value})} 
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+                                        >
+                                            <option value="Todos">Todos</option>
+                                            <option value="Protetta">Protetta</option>
+                                            <option value="Proper">Proper</option>
+                                            <option value="Assessoria">Assessoria</option>
+                                            <option value="Corretor Interno">Corretor Interno</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Parcela */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Parcela</label>
+                                        <input 
+                                            type="text" 
+                                            value={vendasFilterForm.parcela} 
+                                            onChange={e => setVendasFilterForm({...vendasFilterForm, parcela: e.target.value})} 
+                                            placeholder="Número da parcela"
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                        />
+                                    </div>
+
+                                    {/* Início Vigência */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Início Vigência</label>
+                                        <input 
+                                            type="date" 
+                                            value={vendasFilterForm.inicioVigencia} 
+                                            onChange={e => setVendasFilterForm({...vendasFilterForm, inicioVigencia: e.target.value})} 
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                        />
+                                    </div>
+
+                                    {/* Nota Fiscal */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Nota Fiscal</label>
+                                        <input 
+                                            type="text" 
+                                            value={vendasFilterForm.notaFiscal} 
+                                            onChange={e => setVendasFilterForm({...vendasFilterForm, notaFiscal: e.target.value})} 
+                                            placeholder="Número da NF"
+                                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Botões */}
+                                <div className="flex gap-3 mt-6 border-t border-slate-200 dark:border-slate-700 pt-4">
+                                    <button 
+                                        onClick={handleBuscarVendas} 
+                                        className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center shadow transition-colors"
+                                    >
+                                        <CheckCircle size={16} className="mr-2"/> Buscar
+                                    </button>
+                                    <button 
+                                        onClick={handleLimparVendas} 
+                                        className="bg-rose-500 hover:bg-rose-400 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center shadow transition-colors"
+                                    >
+                                        <X size={16} className="mr-2"/> Limpar
+                                    </button>
                                 </div>
                             </div>
-
-                            {/* Contrato */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Contrato</label>
-                                <input 
-                                    type="text" 
-                                    value={vendasFilterForm.contrato} 
-                                    onChange={e => setVendasFilterForm({...vendasFilterForm, contrato: e.target.value})} 
-                                    placeholder="Número do contrato"
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
-                                />
-                            </div>
-
-                            {/* Código Operadora */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Código Operadora</label>
-                                <input 
-                                    type="text" 
-                                    value={vendasFilterForm.codigoOperadora} 
-                                    onChange={e => setVendasFilterForm({...vendasFilterForm, codigoOperadora: e.target.value})} 
-                                    placeholder="Ex: AMIL, Bradesco..."
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
-                                />
-                            </div>
-
-                            {/* Nº Vidas */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">N. vidas</label>
-                                <input 
-                                    type="number" 
-                                    value={vendasFilterForm.vidas} 
-                                    onChange={e => setVendasFilterForm({...vendasFilterForm, vidas: e.target.value})} 
-                                    placeholder="Quantidade de vidas"
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
-                                />
-                            </div>
-
-                            {/* Vitalício */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Vitalício</label>
-                                <select 
-                                    value={vendasFilterForm.vitalicio} 
-                                    onChange={e => setVendasFilterForm({...vendasFilterForm, vitalicio: e.target.value})} 
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"
-                                >
-                                    <option value="Selecione">Selecione</option>
-                                    <option value="Sim">Sim</option>
-                                    <option value="Não">Não</option>
-                                </select>
-                            </div>
-
-                            {/* Corretor */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Corretor</label>
-                                <select 
-                                    value={vendasFilterForm.corretor} 
-                                    onChange={e => setVendasFilterForm({...vendasFilterForm, corretor: e.target.value})} 
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"
-                                >
-                                    <option value="Todos">Todos</option>
-                                    <option value="Protetta">Protetta</option>
-                                    <option value="Proper">Proper</option>
-                                    <option value="Assessoria">Assessoria</option>
-                                    <option value="Corretor Interno">Corretor Interno</option>
-                                </select>
-                            </div>
-
-                            {/* Parcela */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Parcela</label>
-                                <input 
-                                    type="text" 
-                                    value={vendasFilterForm.parcela} 
-                                    onChange={e => setVendasFilterForm({...vendasFilterForm, parcela: e.target.value})} 
-                                    placeholder="Número da parcela"
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
-                                />
-                            </div>
-
-                            {/* Início Vigência */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Início Vigência</label>
-                                <input 
-                                    type="date" 
-                                    value={vendasFilterForm.inicioVigencia} 
-                                    onChange={e => setVendasFilterForm({...vendasFilterForm, inicioVigencia: e.target.value})} 
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
-                                />
-                            </div>
-
-                            {/* Nota Fiscal */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Nota Fiscal</label>
-                                <input 
-                                    type="text" 
-                                    value={vendasFilterForm.notaFiscal} 
-                                    onChange={e => setVendasFilterForm({...vendasFilterForm, notaFiscal: e.target.value})} 
-                                    placeholder="Número da NF"
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
-                                />
-                            </div>
-                        </div>
-
-                        {/* Botões */}
-                        <div className="flex gap-3 mt-6 border-t border-slate-200 dark:border-slate-700 pt-4">
-                            <button 
-                                onClick={handleBuscarVendas} 
-                                className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center shadow transition-colors"
-                            >
-                                <CheckCircle size={16} className="mr-2"/> Buscar
-                            </button>
-                            <button 
-                                onClick={handleLimparVendas} 
-                                className="bg-rose-500 hover:bg-rose-400 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center shadow transition-colors"
-                            >
-                                <X size={16} className="mr-2"/> Limpar
-                            </button>
+                        )}
+                        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm overflow-x-auto transition-colors duration-200">
+                            <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
+                                <thead>
+                                    <tr className="border-b-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-750/50 transition-colors duration-200">
+                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 w-24">Registo</th>
+                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700">Cliente</th>
+                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 w-32">Data</th>
+                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 text-center w-48">Situação</th>
+                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 w-32 text-right">Valor</th>
+                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 text-center w-40">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {displayedVendas.length === 0 ? (
+                                        <tr><td colSpan="6" className="py-8 text-center text-slate-500 italic">Nenhum registo de venda encontrado.</td></tr>
+                                    ) : (
+                                        displayedVendas.map((venda) => (
+                                            <tr key={venda.id} className="border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-750/50 transition-colors">
+                                                <td className="py-4 px-4 text-slate-600 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700">{venda.numero || '-'}</td>
+                                                <td className="py-4 px-4 border-r border-slate-200 dark:border-slate-700"><div className="font-bold text-slate-900 dark:text-slate-100">{venda.cliente}</div><div className="text-xs text-slate-500 italic mt-0.5">({venda.loja})</div></td>
+                                                <td className="py-4 px-4 text-slate-600 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700">{formatarDataVisivel(venda.dataVenda)}</td>
+                                                <td className="py-4 px-4 text-center border-r border-slate-200 dark:border-slate-700"><span className={`${getSituacaoColor(venda.situacao)} px-3 py-1 rounded text-xs font-bold uppercase`}>{venda.situacao}</span></td>
+                                                <td className="py-4 px-4 text-slate-800 dark:text-slate-200 font-medium text-right border-r border-slate-200 dark:border-slate-700">{formatarMoeda(venda.valor)}</td>
+                                                <td className="py-4 px-4 text-center">
+                                                    <div className="flex gap-1.5 justify-center">
+                                                        <button onClick={() => abrirModalVenda(venda)} className="bg-sky-500 hover:bg-sky-400 text-white p-1.5 rounded transition-colors shadow-sm" title="Visualizar / Editar Detalhes"><Search size={14}/></button>
+                                                        <button onClick={() => { setNfeForm(prev => ({ ...prev, nome: venda.cliente, valor: venda.valor, desc: `Referente a comissão / serviços prestados para ${venda.cliente}.` })); setCurrentView('nfe'); setNfeTab('emitir'); setNfeLog([]); }} className="bg-indigo-500 hover:bg-indigo-400 text-white p-1.5 rounded transition-colors shadow-sm" title="Emitir NF-e"><Receipt size={14}/></button>
+                                                        <button onClick={() => apagarVenda(venda)} className="bg-rose-500 hover:bg-rose-400 text-white p-1.5 rounded transition-colors shadow-sm" title="Apagar Venda"><Trash2 size={14}/></button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                )}  
+                )}
+
                 {/* ECRÃ 3: CLIENTES */}
                 {currentView === 'clientes' && hasAccess('clientes') && (
                     <div className="w-full mx-auto animate-in fade-in duration-500 pb-20">
@@ -1207,7 +1328,9 @@ export default function App() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {clientesFiltrados.length === 0 ? (<tr><td colSpan="10" className="py-8 text-center text-slate-500 italic">Nenhum cliente encontrado com os filtros atuais.</td></tr>) : (
+                                    {clientesFiltrados.length === 0 ? (
+                                        <tr><td colSpan="10" className="py-8 text-center text-slate-500 italic">Nenhum cliente encontrado com os filtros atuais.</td></tr>
+                                    ) : (
                                         clientesFiltrados.map((cli) => (
                                             <tr key={cli.id} className="border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-750/50 transition-colors">
                                                 {cols.codigo && <td className="py-3 px-4 text-slate-500 dark:text-slate-400">{cli.codigo || '-'}</td>}
@@ -1294,7 +1417,9 @@ export default function App() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {pdfData.length === 0 ? (<tr><td colSpan="20" className="py-8 text-center text-slate-500 italic">Nenhum dado extraído ainda. Importe o PDF.</td></tr>) : (
+                                    {pdfData.length === 0 ? (
+                                        <tr><td colSpan="20" className="py-8 text-center text-slate-500 italic">Nenhum dado extraído ainda. Importe o PDF.</td></tr>
+                                    ) : (
                                         pdfData.map((linha, idx) => (
                                             editRowIndex === idx ? (
                                                 <tr key={idx} className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 transition-colors">
@@ -1538,279 +1663,279 @@ export default function App() {
                                 )}
                             </div>
                         )}
-                            {nfeTab === 'historico' && (
-                                <div className="bg-white dark:bg-slate-800 p-6 rounded-b-xl shadow-lg border border-slate-200 dark:border-slate-700">
-                                    {nfeHistorico.length === 0 ? (
-                                        <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                                            <p className="mb-4">Nenhuma nota foi emitida nesta sessão.</p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {nfeHistorico.map((nota) => (
-                                                <div key={nota.id} className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                                    <div>
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Prot: {nota.protocolo}</span>
-                                                            <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 font-bold uppercase">{nota.status}</span>
-                                                        </div>
-                                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{nota.cliente}</p>
+                        {nfeTab === 'historico' && (
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-b-xl shadow-lg border border-slate-200 dark:border-slate-700">
+                                {nfeHistorico.length === 0 ? (
+                                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                                        <p className="mb-4">Nenhuma nota foi emitida nesta sessão.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {nfeHistorico.map((nota) => (
+                                            <div key={nota.id} className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Prot: {nota.protocolo}</span>
+                                                        <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 font-bold uppercase">{nota.status}</span>
                                                     </div>
-                                                    <div className="text-left md:text-right">
-                                                        <p className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">R$ {parseFloat(nota.valor).toLocaleString('pt-BR', {minimumFractionDigits:2})}</p>
-                                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{formatarDataVisivel(nota.data)}</p>
-                                                    </div>
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{nota.cliente}</p>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* ECRÃ 7: GESTOR DE EXTRATOS (INCLUIR) */}
-                    {currentView === 'gestor-add' && hasAccess('gestor') && (
-                            <div className="max-w-3xl mx-auto animate-in slide-in-from-bottom-4 duration-500 pb-20">
-                                <header className="mb-8 border-b border-slate-200 dark:border-slate-700 pb-4">
-                                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 flex items-center"><FolderTree className="mr-3 text-amber-500"/>Arquivar Novo Extrato</h2>
-                                    <p className="text-slate-500 dark:text-slate-400">Guarde ficheiros no Gestor organizados por data e parceiro.</p>
-                                </header>
-                                <form onSubmit={handleSubmitExtrato} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-xl space-y-6 transition-colors duration-200">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2"><label className="text-sm font-medium text-slate-600 dark:text-slate-300">Ano</label><input type="number" value={formData.ano} onChange={(e) => setFormData({...formData, ano: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-blue-500" /></div>
-                                        <div className="space-y-2"><label className="text-sm font-medium text-slate-600 dark:text-slate-300">Mês</label><select value={formData.mes} onChange={(e) => setFormData({...formData, mes: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-blue-500">{MESES.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
-                                        <div className="space-y-2"><label className="text-sm font-medium text-slate-600 dark:text-slate-300">Categoria</label><select value={formData.categoria} onChange={(e) => setFormData({...formData, categoria: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-blue-500">{CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                                        <div className="space-y-2"><label className="text-sm font-medium text-slate-600 dark:text-slate-300">Empresa (Pasta)</label><select disabled value={formData.empresa} onChange={(e) => setFormData({...formData, empresa: e.target.value})} className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed">{EMPRESAS_INTERNAS.map(e => <option key={e} value={e}>{e}</option>)}</select></div>
-                                    </div>
-                                    <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-700">
-                                        <label className="text-sm font-bold text-blue-600 dark:text-blue-400">NOME DO PARCEIRO / ARQUIVO</label>
-                                        <input type="text" value={formData.parceiro} onChange={(e) => setFormData({...formData, parceiro: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-blue-500" placeholder="Ex: Extrato Amil Mensal..." />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Ficheiros Anexos</label>
-                                        <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-750 hover:border-blue-500 transition-colors">
-                                            <Layers size={24} className="text-slate-400 mb-2" /><p className="text-sm text-slate-500 dark:text-slate-300">Clique para anexar os extratos (PDF, Excel)</p>
-                                        </div>
-                                        <input type="file" ref={fileInputRef} onChange={(e)=>{ const newFiles = Array.from(e.target.files); if(newFiles.length>0){setFormData(prev=>({...prev, arquivos: [...prev.arquivos, ...newFiles]})); setFormError('');} if(fileInputRef.current) fileInputRef.current.value=""; }} className="hidden" multiple accept=".pdf,.csv,.xlsx,.xls" />
-                                        {formData.arquivos.length > 0 && <div className="mt-2 space-y-2">{formData.arquivos.map((f, i) => <div key={i} className="bg-slate-50 dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-700 flex justify-between items-center"><span className="text-xs text-slate-700 dark:text-slate-300 truncate">{f.name}</span><button type="button" onClick={() => setFormData(prev => ({...prev, arquivos: prev.arquivos.filter((_, idx) => idx !== i)}))} className="text-rose-500 dark:text-rose-400"><X size={14} /></button></div>)}</div>}
-                                    </div>
-                                    {formError && <p className="text-rose-500 dark:text-rose-400 text-sm font-medium">{formError}</p>}
-                                    <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors"><Save size={20} /><span>Guardar Extrato no Banco</span></button>
-                                    {successMsg && <div className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 p-3 rounded-lg text-center font-bold">{successMsg}</div>}
-                                </form>
-                            </div>
-                        )}
-
-                        {/* ECRÃ 8: GESTOR DE EXTRATOS (EXPLORAR) */}
-                        {currentView === 'gestor-browse' && hasAccess('gestor') && (
-                            <div className="max-w-6xl mx-auto animate-in fade-in duration-500 pb-20">
-                                <header className="mb-6 flex flex-col gap-4 border-b border-slate-200 dark:border-slate-700 pb-4">
-                                    <div><h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center"><Database className="mr-3 text-indigo-500 dark:text-indigo-400"/>Gestor de Extratos</h2><p className="text-slate-500 dark:text-slate-400 mt-1">Navegação segura pelos arquivos salvos internamente.</p></div>
-                                    <div className="flex gap-2">
-                                        <div className="relative flex-1">
-                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><Search size={18} /></div>
-                                            <input type="text" placeholder="Pesquisar extrato por nome ou parceiro..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200 rounded-lg pl-10 pr-4 py-2 outline-none focus:border-blue-500 transition-colors" />
-                                            {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-white"><X size={16} /></button>}
-                                        </div>
-                                        {currentPath.length > 0 && !searchTerm && <button onClick={() => setCurrentPath(currentPath.slice(0, -1))} className="bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-white px-4 rounded-lg transition-colors"><ArrowLeft size={18} /></button>}
-                                    </div>
-                                </header>
-                                {!searchTerm && (
-                                    <div className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 p-3 rounded-lg mb-6 border border-slate-200 dark:border-slate-700 overflow-x-auto whitespace-nowrap transition-colors">
-                                        <button onClick={() => setCurrentPath([])} className="hover:text-blue-600 dark:hover:text-blue-400 flex items-center"><Home size={14} className="mr-1"/> Raiz</button>
-                                        {currentPath.map((folder, index) => <React.Fragment key={index}><ChevronRight size={14} /><button onClick={() => { setCurrentPath(currentPath.slice(0, index + 1)); setSearchTerm(''); }} className="hover:text-blue-600 dark:hover:text-blue-400 font-medium">{folder}</button></React.Fragment>)}
+                                                <div className="text-left md:text-right">
+                                                    <p className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">R$ {parseFloat(nota.valor).toLocaleString('pt-BR', {minimumFractionDigits:2})}</p>
+                                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{formatarDataVisivel(nota.data)}</p>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                    {getItemsAtCurrentPath().map((item, idx) => (
-                                        <div key={idx} onClick={() => handleNavigate(item)} className={`p-4 rounded-xl border cursor-pointer flex flex-col items-center text-center space-y-3 transition-colors ${item.type === 'folder' ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 hover:bg-white dark:hover:bg-slate-800'}`}>
-                                            <div className={`p-3 rounded-full ${item.type === 'folder' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-700 ' + getFileColorClass(item.fileName)}`}>
-                                                {item.type === 'folder' ? <Folder size={32} /> : ((item.fileName || '').toLowerCase().endsWith('pdf') ? <FileText size={32} /> : <FileSpreadsheet size={32} />)}
-                                            </div>
-                                            <div className="w-full"><p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{item.name}</p></div>
-                                        </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* ECRÃ 7: GESTOR DE EXTRATOS (INCLUIR) */}
+                {currentView === 'gestor-add' && hasAccess('gestor') && (
+                    <div className="max-w-3xl mx-auto animate-in slide-in-from-bottom-4 duration-500 pb-20">
+                        <header className="mb-8 border-b border-slate-200 dark:border-slate-700 pb-4">
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 flex items-center"><FolderTree className="mr-3 text-amber-500"/>Arquivar Novo Extrato</h2>
+                            <p className="text-slate-500 dark:text-slate-400">Guarde ficheiros no Gestor organizados por data e parceiro.</p>
+                        </header>
+                        <form onSubmit={handleSubmitExtrato} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-xl space-y-6 transition-colors duration-200">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2"><label className="text-sm font-medium text-slate-600 dark:text-slate-300">Ano</label><input type="number" value={formData.ano} onChange={(e) => setFormData({...formData, ano: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-blue-500" /></div>
+                                <div className="space-y-2"><label className="text-sm font-medium text-slate-600 dark:text-slate-300">Mês</label><select value={formData.mes} onChange={(e) => setFormData({...formData, mes: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-blue-500">{MESES.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
+                                <div className="space-y-2"><label className="text-sm font-medium text-slate-600 dark:text-slate-300">Categoria</label><select value={formData.categoria} onChange={(e) => setFormData({...formData, categoria: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-900 dark:text-white outline-none focus:border-blue-500">{CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                                <div className="space-y-2"><label className="text-sm font-medium text-slate-600 dark:text-slate-300">Empresa (Pasta)</label><select disabled value={formData.empresa} onChange={(e) => setFormData({...formData, empresa: e.target.value})} className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed">{EMPRESAS_INTERNAS.map(e => <option key={e} value={e}>{e}</option>)}</select></div>
+                            </div>
+                            <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+                                <label className="text-sm font-bold text-blue-600 dark:text-blue-400">NOME DO PARCEIRO / ARQUIVO</label>
+                                <input type="text" value={formData.parceiro} onChange={(e) => setFormData({...formData, parceiro: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-blue-500" placeholder="Ex: Extrato Amil Mensal..." />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Ficheiros Anexos</label>
+                                <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-750 hover:border-blue-500 transition-colors">
+                                    <Layers size={24} className="text-slate-400 mb-2" /><p className="text-sm text-slate-500 dark:text-slate-300">Clique para anexar os extratos (PDF, Excel)</p>
+                                </div>
+                                <input type="file" ref={fileInputRef} onChange={(e)=>{ const newFiles = Array.from(e.target.files); if(newFiles.length>0){setFormData(prev=>({...prev, arquivos: [...prev.arquivos, ...newFiles]})); setFormError('');} if(fileInputRef.current) fileInputRef.current.value=""; }} className="hidden" multiple accept=".pdf,.csv,.xlsx,.xls" />
+                                {formData.arquivos.length > 0 && <div className="mt-2 space-y-2">{formData.arquivos.map((f, i) => <div key={i} className="bg-slate-50 dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-700 flex justify-between items-center"><span className="text-xs text-slate-700 dark:text-slate-300 truncate">{f.name}</span><button type="button" onClick={() => setFormData(prev => ({...prev, arquivos: prev.arquivos.filter((_, idx) => idx !== i)}))} className="text-rose-500 dark:text-rose-400"><X size={14} /></button></div>)}</div>}
+                            </div>
+                            {formError && <p className="text-rose-500 dark:text-rose-400 text-sm font-medium">{formError}</p>}
+                            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors"><Save size={20} /><span>Guardar Extrato no Banco</span></button>
+                            {successMsg && <div className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 p-3 rounded-lg text-center font-bold">{successMsg}</div>}
+                        </form>
+                    </div>
+                )}
+
+                {/* ECRÃ 8: GESTOR DE EXTRATOS (EXPLORAR) */}
+                {currentView === 'gestor-browse' && hasAccess('gestor') && (
+                    <div className="max-w-6xl mx-auto animate-in fade-in duration-500 pb-20">
+                        <header className="mb-6 flex flex-col gap-4 border-b border-slate-200 dark:border-slate-700 pb-4">
+                            <div><h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center"><Database className="mr-3 text-indigo-500 dark:text-indigo-400"/>Gestor de Extratos</h2><p className="text-slate-500 dark:text-slate-400 mt-1">Navegação segura pelos arquivos salvos internamente.</p></div>
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><Search size={18} /></div>
+                                    <input type="text" placeholder="Pesquisar extrato por nome ou parceiro..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200 rounded-lg pl-10 pr-4 py-2 outline-none focus:border-blue-500 transition-colors" />
+                                    {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-white"><X size={16} /></button>}
+                                </div>
+                                {currentPath.length > 0 && !searchTerm && <button onClick={() => setCurrentPath(currentPath.slice(0, -1))} className="bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-white px-4 rounded-lg transition-colors"><ArrowLeft size={18} /></button>}
+                            </div>
+                        </header>
+                        {!searchTerm && (
+                            <div className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 p-3 rounded-lg mb-6 border border-slate-200 dark:border-slate-700 overflow-x-auto whitespace-nowrap transition-colors">
+                                <button onClick={() => setCurrentPath([])} className="hover:text-blue-600 dark:hover:text-blue-400 flex items-center"><Home size={14} className="mr-1"/> Raiz</button>
+                                {currentPath.map((folder, index) => <React.Fragment key={index}><ChevronRight size={14} /><button onClick={() => { setCurrentPath(currentPath.slice(0, index + 1)); setSearchTerm(''); }} className="hover:text-blue-600 dark:hover:text-blue-400 font-medium">{folder}</button></React.Fragment>)}
+                            </div>
+                        )}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {getItemsAtCurrentPath().map((item, idx) => (
+                                <div key={idx} onClick={() => handleNavigate(item)} className={`p-4 rounded-xl border cursor-pointer flex flex-col items-center text-center space-y-3 transition-colors ${item.type === 'folder' ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 hover:bg-white dark:hover:bg-slate-800'}`}>
+                                    <div className={`p-3 rounded-full ${item.type === 'folder' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-700 ' + getFileColorClass(item.fileName)}`}>
+                                        {item.type === 'folder' ? <Folder size={32} /> : ((item.fileName || '').toLowerCase().endsWith('pdf') ? <FileText size={32} /> : <FileSpreadsheet size={32} />)}
+                                    </div>
+                                    <div className="w-full"><p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{item.name}</p></div>
+                                </div>
+                            ))}
+                            {getItemsAtCurrentPath().length === 0 && <div className="col-span-full py-12 text-center text-slate-500 font-medium">Pasta Vazia ou Sem Resultados.</div>}
+                        </div>
+                    </div>
+                )}
+
+                {/* ECRÃ 9: CONTROLE DE ACESSOS */}
+                {currentView === 'usuarios' && hasAccess('usuarios') && (
+                    <div className="max-w-5xl mx-auto animate-in fade-in duration-500 pb-20">
+                        <header className="mb-6 border-b border-slate-200 dark:border-slate-700 pb-4">
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center"><Shield className="mr-3 text-indigo-500"/> Controle de Acessos e Usuários</h2>
+                            <p className="text-slate-500 dark:text-slate-400 mt-1">Gerencie quem pode acessar o sistema e quais abas podem ver.</p>
+                        </header>
+                        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-md mb-6 flex justify-between items-center transition-colors">
+                            <div className="text-sm text-slate-600 dark:text-slate-400">Total de Utilizadores: <strong className="text-slate-900 dark:text-white">{usersList.length}</strong></div>
+                            <button onClick={() => abrirModalUsuario()} className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded font-bold flex items-center shadow transition-colors text-sm"><Plus size={16} className="mr-2"/> Novo Utilizador</button>
+                        </div>
+                        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm overflow-x-auto transition-colors duration-200">
+                            <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
+                                <thead>
+                                    <tr className="border-b-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-750/50 transition-colors duration-200">
+                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300">Utilizador (Login)</th>
+                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300">Perfil de Acesso</th>
+                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300">Acessos Permitidos</th>
+                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {usersList.map((user) => (
+                                        <tr key={user.id} className="border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-750/50 transition-colors">
+                                            <td className="py-3 px-4 font-bold text-slate-900 dark:text-white flex items-center"><User size={16} className="mr-2 text-slate-400" />{user.username}</td>
+                                            <td className="py-3 px-4">
+                                                <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'}`}>
+                                                    {user.role === 'admin' ? 'Administrador' : 'Usuário Padrão'}
+                                                </span>
+                                            </td>
+                                            <td className="py-3 px-4 text-xs text-slate-500 dark:text-slate-400">{user.role === 'admin' ? 'Acesso Total' : `${(user.permissions || []).length} Módulos`}</td>
+                                            <td className="py-3 px-4 text-center">
+                                                <div className="flex gap-2 justify-center">
+                                                    <button onClick={() => abrirModalUsuario(user)} className="text-amber-500 hover:text-amber-400 bg-amber-100 dark:bg-amber-400/10 p-1.5 rounded transition-colors" title="Editar Utilizador"><Edit size={16}/></button>
+                                                    <button onClick={() => apagarUsuario(user)} className="text-rose-500 hover:text-rose-400 bg-rose-100 dark:bg-rose-400/10 p-1.5 rounded transition-colors" title="Apagar Utilizador"><Trash2 size={16}/></button>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     ))}
-                                    {getItemsAtCurrentPath().length === 0 && <div className="col-span-full py-12 text-center text-slate-500 font-medium">Pasta Vazia ou Sem Resultados.</div>}
-                                </div>
-                            </div>
-                        )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
-                        {/* ECRÃ 9: CONTROLE DE ACESSOS */}
-                        {currentView === 'usuarios' && hasAccess('usuarios') && (
-                            <div className="max-w-5xl mx-auto animate-in fade-in duration-500 pb-20">
-                                <header className="mb-6 border-b border-slate-200 dark:border-slate-700 pb-4">
-                                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center"><Shield className="mr-3 text-indigo-500"/> Controle de Acessos e Usuários</h2>
-                                    <p className="text-slate-500 dark:text-slate-400 mt-1">Gerencie quem pode acessar o sistema e quais abas podem ver.</p>
-                                </header>
-                                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-md mb-6 flex justify-between items-center transition-colors">
-                                    <div className="text-sm text-slate-600 dark:text-slate-400">Total de Utilizadores: <strong className="text-slate-900 dark:text-white">{usersList.length}</strong></div>
-                                    <button onClick={() => abrirModalUsuario()} className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded font-bold flex items-center shadow transition-colors text-sm"><Plus size={16} className="mr-2"/> Novo Utilizador</button>
-                                </div>
-                                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm overflow-x-auto transition-colors duration-200">
-                                    <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
-                                        <thead>
-                                            <tr className="border-b-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-750/50 transition-colors duration-200">
-                                                <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300">Utilizador (Login)</th>
-                                                <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300">Perfil de Acesso</th>
-                                                <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300">Acessos Permitidos</th>
-                                                <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 text-center">Ações</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {usersList.map((user) => (
-                                                <tr key={user.id} className="border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-750/50 transition-colors">
-                                                    <td className="py-3 px-4 font-bold text-slate-900 dark:text-white flex items-center"><User size={16} className="mr-2 text-slate-400" />{user.username}</td>
-                                                    <td className="py-3 px-4">
-                                                        <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'}`}>
-                                                            {user.role === 'admin' ? 'Administrador' : 'Usuário Padrão'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-3 px-4 text-xs text-slate-500 dark:text-slate-400">{user.role === 'admin' ? 'Acesso Total' : `${(user.permissions || []).length} Módulos`}</td>
-                                                    <td className="py-3 px-4 text-center">
-                                                        <div className="flex gap-2 justify-center">
-                                                            <button onClick={() => abrirModalUsuario(user)} className="text-amber-500 hover:text-amber-400 bg-amber-100 dark:bg-amber-400/10 p-1.5 rounded transition-colors" title="Editar Utilizador"><Edit size={16}/></button>
-                                                            <button onClick={() => apagarUsuario(user)} className="text-rose-500 hover:text-rose-400 bg-rose-100 dark:bg-rose-400/10 p-1.5 rounded transition-colors" title="Apagar Utilizador"><Trash2 size={16}/></button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ECRÃ 10: SETTINGS */}
-                        {currentView === 'settings' && hasAccess('settings') && (
-                            <div className="max-w-3xl mx-auto animate-in slide-in-from-right-4 duration-500 pb-20">
-                                <header className="mb-8 border-b border-slate-200 dark:border-slate-700 pb-4"><h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center"><Settings className="mr-3 text-slate-500 dark:text-slate-400"/>Configurações & Backup</h2></header>
-                                <div className="grid gap-6">
-                                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors">
-                                        <div className="flex items-center space-x-3 mb-4"><div className="bg-emerald-100 dark:bg-emerald-500/20 p-2 rounded-lg"><Save className="text-emerald-600 dark:text-emerald-400" /></div><div><h3 className="font-bold text-slate-900 dark:text-white text-lg">Criar Backup de Segurança (Cloud)</h3><p className="text-xs text-slate-500 dark:text-slate-400">Exporta os dados armazenados no Supabase para o seu PC.</p></div></div>
-                                        <div className="grid grid-cols-1 gap-4">
-                                            <button onClick={async () => {
-                                                if (clientes.length === 0 && savedReportsList.length === 0 && vendasList.length === 0) return showAlert("Não existem dados suficientes para backup.");
-                                                setLoading(true); setLoadingMsg("A gerar Backup Geral Supabase...");
-                                                try {
-                                                    const zip = new JSZip();
-                                                    zip.file("clientes.json", JSON.stringify(clientes, null, 2));
-                                                    zip.file("historico_relatorios.json", JSON.stringify(savedReportsList, null, 2));
-                                                    zip.file("vendas_servicos.json", JSON.stringify(vendasList, null, 2));
-                                                    zip.file("utilizadores.json", JSON.stringify(usersList.map(u => ({ username: u.username, role: u.role })), null, 2));
-                                                    zip.file("arquivos_extratos.json", JSON.stringify(dbReports, null, 2));
-                                                    
-                                                    const content = await zip.generateAsync({type: "blob"});
-                                                    const url = URL.createObjectURL(content);
-                                                    const a = document.createElement('a'); a.href = url; a.download = `DonGestao_BackupGeral_${dataDeHojeInterna()}.zip`;
-                                                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-                                                    showAlert("Backup transferido com sucesso!");
-                                                } catch (err) { showAlert("Erro ao gerar ZIP: " + err.message); } finally { setLoading(false); }
-                                            }} className="p-4 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg flex items-center justify-center border border-slate-300 dark:border-slate-600 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors text-slate-800 dark:text-white"><Download size={20} className="mr-2"/><span className="font-bold">Baixar Arquivo .ZIP Completo</span></button>
-                                        </div>
-                                    </div>
-                                    <div className="bg-rose-50 dark:bg-red-900/10 p-6 rounded-xl border border-rose-200 dark:border-red-900/30 mt-4 transition-colors">
-                                        <h3 className="font-bold text-rose-600 dark:text-rose-400 mb-2 flex items-center"><Trash2 size={18} className="mr-2"/> Limpeza Total</h3>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Isto irá apagar da nuvem todo o Histórico de Relatórios e as Vendas associadas.</p>
-                                        <button onClick={() => {
-                                            showConfirm("PERIGO CLOUD: Tem a certeza absoluta que deseja apagar TODOS os relatórios e vendas da Cloud? Esta ação não tem volta.", async () => {
-                                                setLoading(true); setLoadingMsg("Apagando base...");
-                                                try {
-                                                    await supabase.from('vendas').delete().neq('id', 0);
-                                                    await supabase.from('savedReports').delete().neq('id', 0);
-                                                    await loadFromDB();
-                                                    showAlert("Banco de vendas limpo com sucesso na nuvem.");
-                                                } catch(err) { showAlert("Erro ao apagar: " + err.message); }
-                                                setLoading(false);
-                                            });
-                                        }} className="w-full border border-rose-400 dark:border-rose-500/50 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 font-bold py-2 rounded-lg transition-colors text-sm">Apagar Histórico e Vendas</button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Modal Impressão (Avançado) */}
-                        {modalPrintOpen && (
-                            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-                                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-6 w-full max-w-2xl relative mx-4 transition-colors max-h-[90vh] flex flex-col">
-                                    <button onClick={() => setModalPrintOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"><X size={20} /></button>
-                                    <div className="mb-4 border-b border-slate-200 dark:border-slate-700 pb-4">
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center"><Printer className="mr-2 text-emerald-500" /> Configurar Impressão de Relatório</h3>
-                                    </div>
-                                    
-                                    <div className="flex-1 overflow-y-auto pr-2 space-y-5">
-                                        <div className="flex gap-6">
-                                            <div>
-                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Formato da Folha</label>
-                                                <div className="flex gap-4">
-                                                    <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300"><input type="radio" value="portrait" checked={printConfig.orientation === 'portrait'} onChange={(e) => setPrintConfig({...printConfig, orientation: e.target.value})} className="accent-emerald-500 w-4 h-4" /> Retrato</label>
-                                                    <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300"><input type="radio" value="landscape" checked={printConfig.orientation === 'landscape'} onChange={(e) => setPrintConfig({...printConfig, orientation: e.target.value})} className="accent-emerald-500 w-4 h-4" /> Paisagem</label>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Escala de Redução (%)</label>
-                                                <div className="flex items-center gap-2"><input type="number" min="30" max="200" value={printConfig.scale} onChange={(e) => setPrintConfig({...printConfig, scale: Number(e.target.value)})} className="w-20 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:border-emerald-500 outline-none text-slate-900 dark:text-white text-center font-bold" /><span className="text-slate-500 dark:text-slate-400 font-bold">%</span></div>
-                                            </div>
-                                        </div>
-
-                                        <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-                                            <div className="flex justify-between items-center mb-3">
-                                                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Colunas a Imprimir</h4>
-                                                <div className="flex gap-2">
-                                                    <select value={selectedPreset} onChange={(e) => applyPrintPreset(e.target.value)} className="bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs outline-none text-slate-900 dark:text-white font-medium">
-                                                        <option value="">-- Personalizado / Padrão --</option>
-                                                        {printPresets.map(p => <option key={p.id || p.name} value={p.id || p.name}>{p.name}</option>)}
-                                                    </select>
-                                                    {selectedPreset && (
-                                                        <button onClick={() => deletePrintPreset(selectedPreset)} className="text-rose-500 hover:text-rose-600 bg-rose-50 dark:bg-rose-900/30 px-2 rounded" title="Apagar Seleção Guardada da Cloud"><Trash2 size={14}/></button>
-                                                    )}
-                                                </div>
-                                            </div>
+                {/* ECRÃ 10: SETTINGS */}
+                {currentView === 'settings' && hasAccess('settings') && (
+                    <div className="max-w-3xl mx-auto animate-in slide-in-from-right-4 duration-500 pb-20">
+                        <header className="mb-8 border-b border-slate-200 dark:border-slate-700 pb-4"><h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center"><Settings className="mr-3 text-slate-500 dark:text-slate-400"/>Configurações & Backup</h2></header>
+                        <div className="grid gap-6">
+                            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors">
+                                <div className="flex items-center space-x-3 mb-4"><div className="bg-emerald-100 dark:bg-emerald-500/20 p-2 rounded-lg"><Save className="text-emerald-600 dark:text-emerald-400" /></div><div><h3 className="font-bold text-slate-900 dark:text-white text-lg">Criar Backup de Segurança (Cloud)</h3><p className="text-xs text-slate-500 dark:text-slate-400">Exporta os dados armazenados no Supabase para o seu PC.</p></div></div>
+                                <div className="grid grid-cols-1 gap-4">
+                                    <button onClick={async () => {
+                                        if (clientes.length === 0 && savedReportsList.length === 0 && vendasList.length === 0) return showAlert("Não existem dados suficientes para backup.");
+                                        setLoading(true); setLoadingMsg("A gerar Backup Geral Supabase...");
+                                        try {
+                                            const zip = new JSZip();
+                                            zip.file("clientes.json", JSON.stringify(clientes, null, 2));
+                                            zip.file("historico_relatorios.json", JSON.stringify(savedReportsList, null, 2));
+                                            zip.file("vendas_servicos.json", JSON.stringify(vendasList, null, 2));
+                                            zip.file("utilizadores.json", JSON.stringify(usersList.map(u => ({ username: u.username, role: u.role })), null, 2));
+                                            zip.file("arquivos_extratos.json", JSON.stringify(dbReports, null, 2));
                                             
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700/50">
-                                                {Object.entries(printColLabels).map(([key, label]) => (
-                                                    <label key={key} className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400">
-                                                        <input type="checkbox" checked={printCols[key]} onChange={(e) => {
-                                                            setPrintCols({...printCols, [key]: e.target.checked});
-                                                            setSelectedPreset('');
-                                                        }} className="accent-blue-500 w-3.5 h-3.5 rounded" />
-                                                        {label}
-                                                    </label>
-                                                ))}
-                                            </div>
+                                            const content = await zip.generateAsync({type: "blob"});
+                                            const url = URL.createObjectURL(content);
+                                            const a = document.createElement('a'); a.href = url; a.download = `DonGestao_BackupGeral_${dataDeHojeInterna()}.zip`;
+                                            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+                                            showAlert("Backup transferido com sucesso!");
+                                        } catch (err) { showAlert("Erro ao gerar ZIP: " + err.message); } finally { setLoading(false); }
+                                    }} className="p-4 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg flex items-center justify-center border border-slate-300 dark:border-slate-600 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors text-slate-800 dark:text-white"><Download size={20} className="mr-2"/><span className="font-bold">Baixar Arquivo .ZIP Completo</span></button>
+                                </div>
+                            </div>
+                            <div className="bg-rose-50 dark:bg-red-900/10 p-6 rounded-xl border border-rose-200 dark:border-red-900/30 mt-4 transition-colors">
+                                <h3 className="font-bold text-rose-600 dark:text-rose-400 mb-2 flex items-center"><Trash2 size={18} className="mr-2"/> Limpeza Total</h3>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Isto irá apagar da nuvem todo o Histórico de Relatórios e as Vendas associadas.</p>
+                                <button onClick={() => {
+                                    showConfirm("PERIGO CLOUD: Tem a certeza absoluta que deseja apagar TODOS os relatórios e vendas da Cloud? Esta ação não tem volta.", async () => {
+                                        setLoading(true); setLoadingMsg("Apagando base...");
+                                        try {
+                                            await supabase.from('vendas').delete().neq('id', 0);
+                                            await supabase.from('savedReports').delete().neq('id', 0);
+                                            await loadFromDB();
+                                            showAlert("Banco de vendas limpo com sucesso na nuvem.");
+                                        } catch(err) { showAlert("Erro ao apagar: " + err.message); }
+                                        setLoading(false);
+                                    });
+                                }} className="w-full border border-rose-400 dark:border-rose-500/50 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 font-bold py-2 rounded-lg transition-colors text-sm">Apagar Histórico e Vendas</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
-                                            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-700">
-                                                <input type="text" value={newPresetName} onChange={(e)=>setNewPresetName(e.target.value)} placeholder="Nomeie esta seleção para gravar na nuvem..." className="flex-1 bg-transparent text-sm outline-none text-slate-900 dark:text-white pl-2" />
-                                                <button onClick={savePrintPreset} className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/80 px-3 py-1.5 rounded text-xs font-bold transition-colors shadow-sm">Gravar na Cloud</button>
-                                            </div>
+                {/* Modal Impressão (Avançado) */}
+                {modalPrintOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-6 w-full max-w-2xl relative mx-4 transition-colors max-h-[90vh] flex flex-col">
+                            <button onClick={() => setModalPrintOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"><X size={20} /></button>
+                            <div className="mb-4 border-b border-slate-200 dark:border-slate-700 pb-4">
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center"><Printer className="mr-2 text-emerald-500" /> Configurar Impressão de Relatório</h3>
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto pr-2 space-y-5">
+                                <div className="flex gap-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Formato da Folha</label>
+                                        <div className="flex gap-4">
+                                            <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300"><input type="radio" value="portrait" checked={printConfig.orientation === 'portrait'} onChange={(e) => setPrintConfig({...printConfig, orientation: e.target.value})} className="accent-emerald-500 w-4 h-4" /> Retrato</label>
+                                            <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300"><input type="radio" value="landscape" checked={printConfig.orientation === 'landscape'} onChange={(e) => setPrintConfig({...printConfig, orientation: e.target.value})} className="accent-emerald-500 w-4 h-4" /> Paisagem</label>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Escala de Redução (%)</label>
+                                        <div className="flex items-center gap-2"><input type="number" min="30" max="200" value={printConfig.scale} onChange={(e) => setPrintConfig({...printConfig, scale: Number(e.target.value)})} className="w-20 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:border-emerald-500 outline-none text-slate-900 dark:text-white text-center font-bold" /><span className="text-slate-500 dark:text-slate-400 font-bold">%</span></div>
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Colunas a Imprimir</h4>
+                                        <div className="flex gap-2">
+                                            <select value={selectedPreset} onChange={(e) => applyPrintPreset(e.target.value)} className="bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs outline-none text-slate-900 dark:text-white font-medium">
+                                                <option value="">-- Personalizado / Padrão --</option>
+                                                {printPresets.map(p => <option key={p.id || p.name} value={p.id || p.name}>{p.name}</option>)}
+                                            </select>
+                                            {selectedPreset && (
+                                                <button onClick={() => deletePrintPreset(selectedPreset)} className="text-rose-500 hover:text-rose-600 bg-rose-50 dark:bg-rose-900/30 px-2 rounded" title="Apagar Seleção Guardada da Cloud"><Trash2 size={14}/></button>
+                                            )}
                                         </div>
                                     </div>
                                     
-                                    <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
-                                        <button onClick={() => setModalPrintOpen(false)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white rounded text-sm font-bold">Cancelar</button>
-                                        <button onClick={handlePrintConfirm} className="px-4 py-2 bg-emerald-600 text-white rounded text-sm font-bold flex items-center shadow hover:bg-emerald-500 transition-colors"><Printer size={16} className="mr-2" /> Gerar Impressão</button>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700/50">
+                                        {Object.entries(printColLabels).map(([key, label]) => (
+                                            <label key={key} className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400">
+                                                <input type="checkbox" checked={printCols[key]} onChange={(e) => {
+                                                    setPrintCols({...printCols, [key]: e.target.checked});
+                                                    setSelectedPreset('');
+                                                }} className="accent-blue-500 w-3.5 h-3.5 rounded" />
+                                                {label}
+                                            </label>
+                                        ))}
                                     </div>
-                                </div>
-                            </div>
-                        )}
 
-                        {/* Modais Globais Simplificados (Exemplo) */}
-                        {selectedFile && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-                                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-6 w-full max-w-sm relative mx-4 transition-colors">
-                                    <button onClick={() => setSelectedFile(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white"><X size={20} /></button>
-                                    <div className="text-center mb-6">
-                                        <div className="mx-auto w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4 text-blue-500 dark:text-blue-400"><FileText size={32} /></div>
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 truncate px-2">{selectedFile.fileName}</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Extrato Associado</p>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <button onClick={() => { const url = URL.createObjectURL(selectedFile.fileObj); window.open(url, '_blank'); setTimeout(()=>URL.revokeObjectURL(url), 1000); setSelectedFile(null); }} className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold flex items-center justify-center space-x-2"><Eye size={20} /><span>Visualizar PDF/Excel</span></button>
-                                        <button onClick={() => { const url = URL.createObjectURL(selectedFile.fileObj); const a = document.createElement('a'); a.href = url; a.download = selectedFile.fileName; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url), 1000); setSelectedFile(null); }} className="w-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white py-3 rounded-lg font-bold flex items-center justify-center space-x-2 transition-colors"><Download size={20} /><span>Baixar para o PC</span></button>
+                                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-700">
+                                        <input type="text" value={newPresetName} onChange={(e)=>setNewPresetName(e.target.value)} placeholder="Nomeie esta seleção para gravar na nuvem..." className="flex-1 bg-transparent text-sm outline-none text-slate-900 dark:text-white pl-2" />
+                                        <button onClick={savePrintPreset} className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800/80 px-3 py-1.5 rounded text-xs font-bold transition-colors shadow-sm">Gravar na Cloud</button>
                                     </div>
                                 </div>
                             </div>
-                        )}
-                    </main>
-                </div>
-            );
-        }
+                            
+                            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+                                <button onClick={() => setModalPrintOpen(false)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white rounded text-sm font-bold">Cancelar</button>
+                                <button onClick={handlePrintConfirm} className="px-4 py-2 bg-emerald-600 text-white rounded text-sm font-bold flex items-center shadow hover:bg-emerald-500 transition-colors"><Printer size={16} className="mr-2" /> Gerar Impressão</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modais Globais Simplificados (Exemplo) */}
+                {selectedFile && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-6 w-full max-w-sm relative mx-4 transition-colors">
+                            <button onClick={() => setSelectedFile(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white"><X size={20} /></button>
+                            <div className="text-center mb-6">
+                                <div className="mx-auto w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4 text-blue-500 dark:text-blue-400"><FileText size={32} /></div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 truncate px-2">{selectedFile.fileName}</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Extrato Associado</p>
+                            </div>
+                            <div className="space-y-3">
+                                <button onClick={() => { const url = URL.createObjectURL(selectedFile.fileObj); window.open(url, '_blank'); setTimeout(()=>URL.revokeObjectURL(url), 1000); setSelectedFile(null); }} className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold flex items-center justify-center space-x-2"><Eye size={20} /><span>Visualizar PDF/Excel</span></button>
+                                <button onClick={() => { const url = URL.createObjectURL(selectedFile.fileObj); const a = document.createElement('a'); a.href = url; a.download = selectedFile.fileName; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url), 1000); setSelectedFile(null); }} className="w-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white py-3 rounded-lg font-bold flex items-center justify-center space-x-2 transition-colors"><Download size={20} /><span>Baixar para o PC</span></button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </main>
+        </div>
+    );
+}
