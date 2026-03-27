@@ -963,65 +963,211 @@ export default function App() {
                             </div>
                         </div>
                         {showVendasFilter && (
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 transition-colors duration-200 animate-in slide-in-from-top-4">
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-4">
-                                    <div><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Loja</label>
-                                        <select value={vendasFilterForm.loja} onChange={e=>setVendasFilterForm({...vendasFilterForm, loja: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"><option value="Todos">Todos</option><option value="PROTETTA SEGUROS">PROTETTA SEGUROS</option></select></div>
-                                    <div><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Código (Registo)</label>
-                                        <input type="text" value={vendasFilterForm.codigo} onChange={e=>setVendasFilterForm({...vendasFilterForm, codigo: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" /></div>
-                                    <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Data de venda</label>
-                                        <div className="flex items-center gap-2"><input type="date" value={vendasFilterForm.dataInicio} onChange={e=>setVendasFilterForm({...vendasFilterForm, dataInicio: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-2 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500" /><span className="text-slate-400 font-medium">a</span><input type="date" value={vendasFilterForm.dataFim} onChange={e=>setVendasFilterForm({...vendasFilterForm, dataFim: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-2 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500" /></div>
-                                    </div>
-                                    <div><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Situação</label>
-                                        <select value={vendasFilterForm.situacao} onChange={e=>setVendasFilterForm({...vendasFilterForm, situacao: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"><option value="Todos">Todos</option><option value="FATURADO PROTETTA NF">FATURADO PROTETTA NF</option><option value="PENDENTE">PENDENTE</option><option value="CANCELADO">CANCELADO</option></select></div>
-                                    <div className="md:col-span-3"><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Cliente</label>
-                                        <div className="relative"><input type="text" placeholder="Nome do cliente..." value={vendasFilterForm.cliente} onChange={e=>setVendasFilterForm({...vendasFilterForm, cliente: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500 pr-8" />
-                                        {vendasFilterForm.cliente && <Trash2 size={16} onClick={() => setVendasFilterForm({...vendasFilterForm, cliente: ''})} className="absolute right-3 top-2.5 text-slate-400 cursor-pointer hover:text-rose-500 transition-colors" />}</div>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3 mt-6 border-t border-slate-200 dark:border-slate-700 pt-4">
-                                    <button onClick={handleBuscarVendas} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded text-sm font-bold flex items-center shadow transition-colors"><CheckCircle size={16} className="mr-2"/> Buscar</button>
-                                    <button onClick={handleLimparVendas} className="bg-rose-500 hover:bg-rose-400 text-white px-6 py-2 rounded text-sm font-bold flex items-center shadow transition-colors"><X size={16} className="mr-2"/> Limpar</button>
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 transition-colors duration-200 animate-in slide-in-from-top-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+                            {/* Loja */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Loja</label>
+                                <select 
+                                    value={vendasFilterForm.loja} 
+                                    onChange={e => setVendasFilterForm({...vendasFilterForm, loja: e.target.value})} 
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+                                >
+                                    <option value="Todos">Todos</option>
+                                    <option value="PROTETTA SEGUROS">PROTETTA SEGUROS</option>
+                                    <option value="PROTETTA">PROTETTA</option>
+                                </select>
+                            </div>
+
+                            {/* Código (Registo) */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Código (Registo)</label>
+                                <input 
+                                    type="text" 
+                                    value={vendasFilterForm.codigo} 
+                                    onChange={e => setVendasFilterForm({...vendasFilterForm, codigo: e.target.value})} 
+                                    placeholder="Código do registo"
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                />
+                            </div>
+
+                            {/* Data de venda */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Data de venda</label>
+                                <div className="flex items-center gap-2">
+                                    <input 
+                                        type="date" 
+                                        value={vendasFilterForm.dataInicio} 
+                                        onChange={e => setVendasFilterForm({...vendasFilterForm, dataInicio: e.target.value})} 
+                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                        placeholder="dd/mm/aaaa"
+                                    />
+                                    <span className="text-slate-400 font-medium">até</span>
+                                    <input 
+                                        type="date" 
+                                        value={vendasFilterForm.dataFim} 
+                                        onChange={e => setVendasFilterForm({...vendasFilterForm, dataFim: e.target.value})} 
+                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                        placeholder="dd/mm/aaaa"
+                                    />
                                 </div>
                             </div>
-                        )}
-                        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm overflow-x-auto transition-colors duration-200">
-                            <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
-                                <thead>
-                                    <tr className="border-b-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-750/50 transition-colors duration-200">
-                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 w-24">Registo</th>
-                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700">Cliente</th>
-                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 w-32">Data</th>
-                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 text-center w-48">Situação</th>
-                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700 w-32 text-right">Valor</th>
-                                        <th className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300 text-center w-40">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {displayedVendas.length === 0 ? (<tr><td colSpan="6" className="py-8 text-center text-slate-500 italic">Nenhum registo de venda encontrado.</td></tr>) : (
-                                        displayedVendas.map((venda) => (
-                                            <tr key={venda.id} className="border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-750/50 transition-colors">
-                                                <td className="py-4 px-4 text-slate-600 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700">{venda.numero || '-'}</td>
-                                                <td className="py-4 px-4 border-r border-slate-200 dark:border-slate-700"><div className="font-bold text-slate-900 dark:text-slate-100">{venda.cliente}</div><div className="text-xs text-slate-500 italic mt-0.5">({venda.loja})</div></td>
-                                                <td className="py-4 px-4 text-slate-600 dark:text-slate-300 border-r border-slate-200 dark:border-slate-700">{formatarDataVisivel(venda.dataVenda)}</td>
-                                                <td className="py-4 px-4 text-center border-r border-slate-200 dark:border-slate-700"><span className={`${getSituacaoColor(venda.situacao)} px-3 py-1 rounded text-xs font-bold uppercase`}>{venda.situacao}</span></td>
-                                                <td className="py-4 px-4 text-slate-800 dark:text-slate-200 font-medium text-right border-r border-slate-200 dark:border-slate-700">{formatarMoeda(venda.valor)}</td>
-                                                <td className="py-4 px-4 text-center">
-                                                    <div className="flex gap-1.5 justify-center">
-                                                        <button onClick={() => abrirModalVenda(venda)} className="bg-sky-500 hover:bg-sky-400 text-white p-1.5 rounded transition-colors shadow-sm" title="Visualizar / Editar Detalhes"><Search size={14}/></button>
-                                                        <button onClick={() => { setNfeForm(prev => ({ ...prev, nome: venda.cliente, valor: venda.valor, desc: `Referente a comissão / serviços prestados para ${venda.cliente}.` })); setCurrentView('nfe'); setNfeTab('emitir'); setNfeLog([]); }} className="bg-indigo-500 hover:bg-indigo-400 text-white p-1.5 rounded transition-colors shadow-sm" title="Emitir NF-e"><Receipt size={14}/></button>
-                                                        <button onClick={() => apagarVenda(venda)} className="bg-rose-500 hover:bg-rose-400 text-white p-1.5 rounded transition-colors shadow-sm" title="Apagar Venda"><Trash2 size={14}/></button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
+
+                            {/* Situação */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Situação</label>
+                                <select 
+                                    value={vendasFilterForm.situacao} 
+                                    onChange={e => setVendasFilterForm({...vendasFilterForm, situacao: e.target.value})} 
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+                                >
+                                    <option value="Todos">Todos</option>
+                                    <option value="FATURADO PROTETTA NF">FATURADO PROTETTA NF</option>
+                                    <option value="PENDENTE">PENDENTE</option>
+                                    <option value="CANCELADO">CANCELADO</option>
+                                </select>
+                            </div>
+
+                            {/* Cliente */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Cliente</label>
+                                <div className="relative">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Nome do cliente..." 
+                                        value={vendasFilterForm.cliente} 
+                                        onChange={e => setVendasFilterForm({...vendasFilterForm, cliente: e.target.value})} 
+                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500 pr-8" 
+                                    />
+                                    {vendasFilterForm.cliente && (
+                                        <Trash2 
+                                            size={16} 
+                                            onClick={() => setVendasFilterForm({...vendasFilterForm, cliente: ''})} 
+                                            className="absolute right-3 top-2.5 text-slate-400 cursor-pointer hover:text-rose-500 transition-colors" 
+                                        />
                                     )}
-                                </tbody>
-                            </table>
+                                </div>
+                            </div>
+
+                            {/* Contrato */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Contrato</label>
+                                <input 
+                                    type="text" 
+                                    value={vendasFilterForm.contrato} 
+                                    onChange={e => setVendasFilterForm({...vendasFilterForm, contrato: e.target.value})} 
+                                    placeholder="Número do contrato"
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                />
+                            </div>
+
+                            {/* Código Operadora */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Código Operadora</label>
+                                <input 
+                                    type="text" 
+                                    value={vendasFilterForm.codigoOperadora} 
+                                    onChange={e => setVendasFilterForm({...vendasFilterForm, codigoOperadora: e.target.value})} 
+                                    placeholder="Ex: AMIL, Bradesco..."
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                />
+                            </div>
+
+                            {/* Nº Vidas */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">N. vidas</label>
+                                <input 
+                                    type="number" 
+                                    value={vendasFilterForm.vidas} 
+                                    onChange={e => setVendasFilterForm({...vendasFilterForm, vidas: e.target.value})} 
+                                    placeholder="Quantidade de vidas"
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                />
+                            </div>
+
+                            {/* Vitalício */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Vitalício</label>
+                                <select 
+                                    value={vendasFilterForm.vitalicio} 
+                                    onChange={e => setVendasFilterForm({...vendasFilterForm, vitalicio: e.target.value})} 
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+                                >
+                                    <option value="Selecione">Selecione</option>
+                                    <option value="Sim">Sim</option>
+                                    <option value="Não">Não</option>
+                                </select>
+                            </div>
+
+                            {/* Corretor */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Corretor</label>
+                                <select 
+                                    value={vendasFilterForm.corretor} 
+                                    onChange={e => setVendasFilterForm({...vendasFilterForm, corretor: e.target.value})} 
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500"
+                                >
+                                    <option value="Todos">Todos</option>
+                                    <option value="Protetta">Protetta</option>
+                                    <option value="Proper">Proper</option>
+                                    <option value="Assessoria">Assessoria</option>
+                                    <option value="Corretor Interno">Corretor Interno</option>
+                                </select>
+                            </div>
+
+                            {/* Parcela */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Parcela</label>
+                                <input 
+                                    type="text" 
+                                    value={vendasFilterForm.parcela} 
+                                    onChange={e => setVendasFilterForm({...vendasFilterForm, parcela: e.target.value})} 
+                                    placeholder="Número da parcela"
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                />
+                            </div>
+
+                            {/* Início Vigência */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Início Vigência</label>
+                                <input 
+                                    type="date" 
+                                    value={vendasFilterForm.inicioVigencia} 
+                                    onChange={e => setVendasFilterForm({...vendasFilterForm, inicioVigencia: e.target.value})} 
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                />
+                            </div>
+
+                            {/* Nota Fiscal */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Nota Fiscal</label>
+                                <input 
+                                    type="text" 
+                                    value={vendasFilterForm.notaFiscal} 
+                                    onChange={e => setVendasFilterForm({...vendasFilterForm, notaFiscal: e.target.value})} 
+                                    placeholder="Número da NF"
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:border-emerald-500" 
+                                />
+                            </div>
+                        </div>
+
+                        {/* Botões */}
+                        <div className="flex gap-3 mt-6 border-t border-slate-200 dark:border-slate-700 pt-4">
+                            <button 
+                                onClick={handleBuscarVendas} 
+                                className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center shadow transition-colors"
+                            >
+                                <CheckCircle size={16} className="mr-2"/> Buscar
+                            </button>
+                            <button 
+                                onClick={handleLimparVendas} 
+                                className="bg-rose-500 hover:bg-rose-400 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center shadow transition-colors"
+                            >
+                                <X size={16} className="mr-2"/> Limpar
+                            </button>
                         </div>
                     </div>
-                )}
-
+                )}  
                 {/* ECRÃ 3: CLIENTES */}
                 {currentView === 'clientes' && hasAccess('clientes') && (
                     <div className="w-full mx-auto animate-in fade-in duration-500 pb-20">
