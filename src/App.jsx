@@ -1366,7 +1366,7 @@ export default function App() {
                         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-md mb-6 flex flex-col md:flex-row justify-between items-center gap-4 transition-colors duration-200">
                             <div><h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">1. Selecionar Extrato</h3><p className="text-sm text-slate-500 dark:text-slate-400">O sistema extrairá automaticamente.</p></div>
                             <div className="flex flex-wrap gap-3 justify-end">
-                                <button onClick={() => setModalArquivosOpen(true)} className="bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 px-6 rounded-lg font-bold flex items-center shadow-lg transition-colors"><Database size={18} className="mr-2"/> Buscar no Sistema</button>
+                                <button onClick={() => setModalArquivosOpen(true)} className="bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 px-6 rounded-lg font-bold flex items-center shadow-lg transition-colors"> <Database size={18} className="mr-2"/> Buscar no Sistema</button>
                                 {pdfData.length > 0 && (
                                     <React.Fragment>
                                         <button onClick={addManualRow} className="bg-amber-500 hover:bg-amber-400 text-white py-2.5 px-4 rounded-lg font-bold flex items-center shadow-lg transition-colors"><Plus size={18} className="mr-2"/> Adicionar Linha</button>
@@ -1520,6 +1520,57 @@ export default function App() {
                         </div>
                     </div>
                 )}
+
+                {/* Modal de Buscar Arquivos no Sistema */}
+{modalArquivosOpen && (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 dark:bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-6 w-full max-w-2xl relative mx-4 transition-colors max-h-[80vh] flex flex-col">
+            <button onClick={() => setModalArquivosOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
+                <X size={20} />
+            </button>
+            <div className="mb-4 border-b border-slate-200 dark:border-slate-700 pb-4">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
+                    <Database className="mr-2 text-indigo-500" /> Buscar Extratos no Sistema
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Selecione um extrato para processar</p>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto">
+                {dbReports.length === 0 ? (
+                    <div className="text-center py-8 text-slate-500">
+                        Nenhum extrato encontrado. <br />
+                        Vá em "Gestor de Extratos" > "Incluir Extrato" para adicionar.
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {dbReports.map((report, idx) => (
+                            <div 
+                                key={idx}
+                                onClick={() => processarArquivoDoBanco(report)}
+                                className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <FileText size={24} className="text-blue-500" />
+                                    <div className="flex-1">
+                                        <p className="font-medium text-slate-900 dark:text-white truncate">{report.parceiro}</p>
+                                        <p className="text-xs text-slate-500">{report.ano} / {report.mes} / {report.empresa}</p>
+                                        <p className="text-xs text-slate-400 truncate">{report.fileName}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+                <button onClick={() => setModalArquivosOpen(false)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white rounded-lg text-sm font-bold">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+)}
 
                 {/* ECRÃ 5: HISTÓRICO DE RELATÓRIOS SALVOS */}
                 {currentView === 'historico' && hasAccess('historico') && (
