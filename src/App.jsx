@@ -1628,7 +1628,7 @@ export default function App() {
         <header className="mb-6 border-b border-slate-200 dark:border-slate-700 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center">
-                    <Receipt className="mr-3 text-blue-500"/> Emissor NFS-e (Rio)
+                    <Receipt className="mr-3 text-blue-500"/> Emissor NFS-e (RJ)
                 </h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                     Padrão Nacional · ADN via API REST · Res. SMF nº 3.419/2026
