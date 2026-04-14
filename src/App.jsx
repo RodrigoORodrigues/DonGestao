@@ -1622,126 +1622,304 @@ export default function App() {
                     </div>
                 )}
 
-                {/* ECRÃ 6: EMISSOR NFS-E */}
-                {currentView === 'nfe' && (hasAccess('nfe') || currentUser?.role === 'admin') && (
-                    <div className="max-w-4xl mx-auto animate-in fade-in duration-500 pb-20">
-                        <header className="mb-6 border-b border-slate-200 dark:border-slate-700 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                            <div>
-                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center"><Receipt className="mr-3 text-blue-500"/> Emissor NFS-e (Rio)</h2>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Integração Web Service via Backend Python</p>
-                            </div>
-                            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium border border-emerald-200 dark:border-emerald-500/30">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Conectado e Pronto
-                            </div>
-                        </header>
+               {/* ECRÃ 6: EMISSOR NFS-E — PADRÃO NACIONAL 2026 */}
+{currentView === 'nfe' && (hasAccess('nfe') || currentUser?.role === 'admin') && (
+    <div className="max-w-4xl mx-auto animate-in fade-in duration-500 pb-20">
+        <header className="mb-6 border-b border-slate-200 dark:border-slate-700 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center">
+                    <Receipt className="mr-3 text-blue-500"/> Emissor NFS-e (Rio)
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Padrão Nacional · ADN via API REST · Res. SMF nº 3.419/2026
+                </p>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium border border-emerald-200 dark:border-emerald-500/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Conectado e Pronto
+            </div>
+        </header>
 
-                        <div className="bg-slate-200 dark:bg-slate-800/50 border-b border-slate-300 dark:border-slate-700 rounded-t-xl flex overflow-hidden">
-                            <button onClick={() => setNfeTab('emitir')} className={`flex-1 p-3 text-sm font-bold border-b-2 transition-colors ${nfeTab === 'emitir' ? 'text-blue-600 dark:text-blue-400 border-blue-500 bg-white dark:bg-slate-800' : 'text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-700'}`}>Formulário de Emissão</button>
-                            <button onClick={() => setNfeTab('historico')} className={`flex-1 p-3 text-sm font-bold border-b-2 transition-colors ${nfeTab === 'historico' ? 'text-blue-600 dark:text-blue-400 border-blue-500 bg-white dark:bg-slate-800' : 'text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-700'}`}>Histórico de Notas ({nfeHistorico.length})</button>
+        {/* Banner informativo sobre o novo padrão */}
+        <div className="mb-4 flex items-start gap-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl p-4 text-sm text-blue-800 dark:text-blue-300">
+            <Info size={18} className="mt-0.5 shrink-0 text-blue-500"/>
+            <div>
+                <span className="font-bold">Padrão Nacional obrigatório desde 01/01/2026.</span>
+                {' '}O modelo ABRASF foi encerrado. A nota é transmitida como DPS ao Ambiente de Dados Nacional (ADN), conforme LC nº 214/2025 e Res. SMF nº 3.419/2026. Campos IBS/CBS são exigidos, mas validações de rejeição estão temporariamente suspensas em 2026.
+            </div>
+        </div>
+
+        <div className="bg-slate-200 dark:bg-slate-800/50 border-b border-slate-300 dark:border-slate-700 rounded-t-xl flex overflow-hidden">
+            <button onClick={() => setNfeTab('emitir')} className={`flex-1 p-3 text-sm font-bold border-b-2 transition-colors ${nfeTab === 'emitir' ? 'text-blue-600 dark:text-blue-400 border-blue-500 bg-white dark:bg-slate-800' : 'text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                Formulário de Emissão (DPS)
+            </button>
+            <button onClick={() => setNfeTab('historico')} className={`flex-1 p-3 text-sm font-bold border-b-2 transition-colors ${nfeTab === 'historico' ? 'text-blue-600 dark:text-blue-400 border-blue-500 bg-white dark:bg-slate-800' : 'text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                Histórico de Notas ({nfeHistorico.length})
+            </button>
+        </div>
+
+        {nfeTab === 'emitir' && (
+            <div className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-b-xl shadow-lg border border-slate-200 dark:border-slate-700 space-y-6">
+
+                {/* BLOCO 1 — DADOS DA DPS */}
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <FileText size={18}/> Dados da DPS
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Data de Competência</label>
+                            <input type="date" value={nfeForm.dataEmissao} onChange={e => setNfeForm({...nfeForm, dataEmissao: e.target.value})}
+                                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
                         </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Regime Tributário</label>
+                            <select value={nfeForm.regime} onChange={e => setNfeForm({...nfeForm, regime: e.target.value})}
+                                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500">
+                                <option value="">Selecione...</option>
+                                <option value="1">MEI</option>
+                                <option value="2">Simples Nacional</option>
+                                <option value="3">Lucro Presumido</option>
+                                <option value="4">Lucro Real</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Município de Incidência (ISS)</label>
+                            <input type="text" value={nfeForm.munIncidencia} onChange={e => setNfeForm({...nfeForm, munIncidencia: e.target.value})}
+                                placeholder="Ex.: Rio de Janeiro – RJ"
+                                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
+                        </div>
+                    </div>
+                </div>
 
-                        {nfeTab === 'emitir' && (
-                            <div className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-b-xl shadow-lg border border-slate-200 dark:border-slate-700 space-y-6">
-                                <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
-                                    <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-4 flex items-center gap-2"><FileText size={18}/> Dados da Nota</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Data Emissão</label>
-                                            <input type="date" value={nfeForm.dataEmissao} onChange={e=>setNfeForm({...nfeForm, dataEmissao: e.target.value})} className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500" />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Série RPS</label>
-                                            <input type="text" value={nfeForm.serie} onChange={e=>setNfeForm({...nfeForm, serie: e.target.value})} className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
-                                    <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-4 flex items-center gap-2"><User size={18}/> Tomador (Cliente)</h3>
-                                    <div className="space-y-4">
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <div className="col-span-1">
-                                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">CPF/CNPJ</label>
-                                                <input type="text" value={nfeForm.cnpj} onChange={e=>setNfeForm({...nfeForm, cnpj: e.target.value})} placeholder="Apenas números" className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500" />
-                                            </div>
-                                            <div className="md:col-span-2">
-                                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Razão Social / Nome</label>
-                                                <input type="text" value={nfeForm.nome} onChange={e=>setNfeForm({...nfeForm, nome: e.target.value})} placeholder="Nome Completo" className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500" />
-                                            </div>
-                                        </div>
-                                        <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3">ENDEREÇO DO CLIENTE</p>
-                                            <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-                                                <div className="md:col-span-2">
-                                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">CEP</label>
-                                                    <input type="text" value={nfeForm.cep} onBlur={e => buscarCep(e.target.value)} onChange={e=>setNfeForm({...nfeForm, cep: e.target.value})} placeholder="00000-000" className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500" />
-                                                </div>
-                                                <div className="md:col-span-4">
-                                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Logradouro</label>
-                                                    <input type="text" value={nfeForm.logradouro} onChange={e=>setNfeForm({...nfeForm, logradouro: e.target.value})} placeholder="Rua, Av..." className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
-                                    <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-4 flex items-center gap-2"><DollarSign size={18}/> Valores e Serviço</h3>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Discriminação</label>
-                                            <textarea value={nfeForm.desc} onChange={e=>setNfeForm({...nfeForm, desc: e.target.value})} rows="3" placeholder="Descreva o serviço..." className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500 resize-none"></textarea>
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Valor do Serviço (R$)</label>
-                                                <input type="number" step="0.01" value={nfeForm.valor} onChange={e=>setNfeForm({...nfeForm, valor: e.target.value})} placeholder="0.00" className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-slate-900 dark:text-white outline-none focus:border-emerald-500 font-bold text-lg" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <button onClick={enviarNota} disabled={isEmitting} className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 mt-4 transition-all ${isEmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 active:scale-95'}`}>
-                                    {isEmitting ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <Send size={20}/>}
-                                    {isEmitting ? 'Processando XML...' : 'Transmitir Nota Fiscal'}
-                                </button>
-
-                                {nfeLog.length > 0 && (
-                                    <div className="bg-slate-900 dark:bg-black rounded-xl p-4 font-mono text-xs text-emerald-400 border border-slate-700 h-32 overflow-y-auto mt-4 leading-relaxed">
-                                        {nfeLog.map((line, i) => <div key={i} className={line.includes('ERRO') ? 'text-rose-400' : (line.includes('SUCESSO') ? 'font-bold' : '')}>{line}</div>)}
-                                    </div>
-                                )}
+                {/* BLOCO 2 — TOMADOR */}
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <User size={18}/> Tomador (Cliente)
+                    </h3>
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">CPF / CNPJ</label>
+                                <input type="text" value={nfeForm.cnpj} onChange={e => setNfeForm({...nfeForm, cnpj: e.target.value})}
+                                    placeholder="Apenas números"
+                                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
                             </div>
-                        )}
-                        {nfeTab === 'historico' && (
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-b-xl shadow-lg border border-slate-200 dark:border-slate-700">
-                                {nfeHistorico.length === 0 ? (
-                                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                                        <p className="mb-4">Nenhuma nota foi emitida nesta sessão.</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {nfeHistorico.map((nota) => (
-                                            <div key={nota.id} className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                                <div>
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Prot: {nota.protocolo}</span>
-                                                        <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 font-bold uppercase">{nota.status}</span>
-                                                    </div>
-                                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{nota.cliente}</p>
-                                                </div>
-                                                <div className="text-left md:text-right">
-                                                    <p className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">R$ {parseFloat(nota.valor).toLocaleString('pt-BR', {minimumFractionDigits:2})}</p>
-                                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{formatarDataVisivel(nota.data)}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                            <div className="md:col-span-2">
+                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Razão Social / Nome</label>
+                                <input type="text" value={nfeForm.nome} onChange={e => setNfeForm({...nfeForm, nome: e.target.value})}
+                                    placeholder="Nome Completo"
+                                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
                             </div>
-                        )}
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">E-mail do Tomador</label>
+                            <input type="email" value={nfeForm.emailTomador} onChange={e => setNfeForm({...nfeForm, emailTomador: e.target.value})}
+                                placeholder="email@exemplo.com"
+                                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
+                        </div>
+                        <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3">ENDEREÇO DO TOMADOR</p>
+                            <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                                <div className="md:col-span-2">
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">CEP</label>
+                                    <input type="text" value={nfeForm.cep}
+                                        onBlur={e => buscarCep(e.target.value)}
+                                        onChange={e => setNfeForm({...nfeForm, cep: e.target.value})}
+                                        placeholder="00000-000"
+                                        className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
+                                </div>
+                                <div className="md:col-span-4">
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Logradouro</label>
+                                    <input type="text" value={nfeForm.logradouro} onChange={e => setNfeForm({...nfeForm, logradouro: e.target.value})}
+                                        placeholder="Rua, Av..."
+                                        className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* BLOCO 3 — CLASSIFICAÇÃO DO SERVIÇO (NOVO) */}
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <Tag size={18}/> Classificação do Serviço
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">
+                                Código Tributação Nacional <span className="text-blue-500">(LC 116/2003)</span>
+                            </label>
+                            <input type="text" value={nfeForm.codTributNacional} onChange={e => setNfeForm({...nfeForm, codTributNacional: e.target.value})}
+                                placeholder="Ex.: 01.01.00"
+                                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">
+                                Código NBS <span className="text-blue-500">(obrig. desde 13/01/2026)</span>
+                            </label>
+                            <input type="text" value={nfeForm.codigoNbs} onChange={e => setNfeForm({...nfeForm, codigoNbs: e.target.value})}
+                                placeholder="Ex.: 1.0101.00.00"
+                                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">CNAE</label>
+                            <input type="text" value={nfeForm.cnae} onChange={e => setNfeForm({...nfeForm, cnae: e.target.value})}
+                                placeholder="Ex.: 6201-5/00"
+                                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
+                        </div>
+                    </div>
+                </div>
+
+                {/* BLOCO 4 — VALORES E ISS */}
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <DollarSign size={18}/> Valores e ISS
+                    </h3>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Discriminação do Serviço</label>
+                            <textarea value={nfeForm.desc} onChange={e => setNfeForm({...nfeForm, desc: e.target.value})}
+                                rows="3" placeholder="Descreva o serviço prestado..."
+                                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500 resize-none"/>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Valor Bruto do Serviço (R$)</label>
+                                <input type="number" step="0.01" value={nfeForm.valor} onChange={e => setNfeForm({...nfeForm, valor: e.target.value})}
+                                    placeholder="0.00"
+                                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-slate-900 dark:text-white outline-none focus:border-emerald-500 font-bold text-lg"/>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Deduções / Descontos (R$)</label>
+                                <input type="number" step="0.01" value={nfeForm.deducoes} onChange={e => setNfeForm({...nfeForm, deducoes: e.target.value})}
+                                    placeholder="0.00"
+                                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">Alíquota ISS (%)</label>
+                                <input type="number" step="0.01" min="2" max="5" value={nfeForm.aliquotaIss} onChange={e => setNfeForm({...nfeForm, aliquotaIss: e.target.value})}
+                                    placeholder="Ex.: 3.00"
+                                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
+                            </div>
+                            <div className="flex items-end gap-2">
+                                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer pb-2.5">
+                                    <input type="checkbox" checked={nfeForm.issRetido} onChange={e => setNfeForm({...nfeForm, issRetido: e.target.checked})}
+                                        className="w-4 h-4 rounded accent-blue-500"/>
+                                    ISS Retido pelo Tomador
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* BLOCO 5 — IBS / CBS (Reforma Tributária – transitório 2026) */}
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-5 border border-amber-200 dark:border-amber-500/30">
+                    <h3 className="text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-2">
+                        <AlertTriangle size={18}/> IBS / CBS — Reforma Tributária
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                        Campos obrigatórios por lei desde 01/01/2026 (LC 214/2025). Validações de rejeição temporariamente suspensas em 2026 — preencha para garantir conformidade.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">cIndOp — Indicador da Operação</label>
+                            <select value={nfeForm.cIndOp} onChange={e => setNfeForm({...nfeForm, cIndOp: e.target.value})}
+                                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-amber-500">
+                                <option value="">Selecione...</option>
+                                <option value="1">1 – Operação com IBS/CBS</option>
+                                <option value="2">2 – Operação isenta de IBS/CBS</option>
+                                <option value="3">3 – Operação imune de IBS/CBS</option>
+                                <option value="4">4 – Operação não sujeita a IBS/CBS</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">cClassTrib — Classificação Tributária</label>
+                            <input type="text" value={nfeForm.cClassTrib} onChange={e => setNfeForm({...nfeForm, cClassTrib: e.target.value})}
+                                placeholder="Ex.: 00 (conforme tabela CGNFS-e)"
+                                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-amber-500"/>
+                        </div>
+                    </div>
+                </div>
+
+                {/* BLOCO 6 — RETENÇÕES FEDERAIS */}
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <Percent size={18}/> Retenções Federais (se aplicável)
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                            { label: 'IR (%)', key: 'retIr' },
+                            { label: 'PIS (%)', key: 'retPis' },
+                            { label: 'COFINS (%)', key: 'retCofins' },
+                            { label: 'CSLL (%)', key: 'retCsll' },
+                        ].map(({ label, key }) => (
+                            <div key={key}>
+                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">{label}</label>
+                                <input type="number" step="0.01" value={nfeForm[key]} onChange={e => setNfeForm({...nfeForm, [key]: e.target.value})}
+                                    placeholder="0.00"
+                                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500"/>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <button onClick={enviarNota} disabled={isEmitting}
+                    className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 mt-4 transition-all ${isEmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 active:scale-95'}`}>
+                    {isEmitting
+                        ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        : <Send size={20}/>}
+                    {isEmitting ? 'Transmitindo DPS ao ADN...' : 'Transmitir DPS — Padrão Nacional 2026'}
+                </button>
+
+                {nfeLog.length > 0 && (
+                    <div className="bg-slate-900 dark:bg-black rounded-xl p-4 font-mono text-xs text-emerald-400 border border-slate-700 h-32 overflow-y-auto mt-4 leading-relaxed">
+                        {nfeLog.map((line, i) => (
+                            <div key={i} className={line.includes('ERRO') ? 'text-rose-400' : (line.includes('SUCESSO') ? 'font-bold' : '')}>
+                                {line}
+                            </div>
+                        ))}
                     </div>
                 )}
+            </div>
+        )}
+
+        {nfeTab === 'historico' && (
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-b-xl shadow-lg border border-slate-200 dark:border-slate-700">
+                {nfeHistorico.length === 0 ? (
+                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                        <p className="mb-4">Nenhuma nota foi emitida nesta sessão.</p>
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        {nfeHistorico.map((nota) => (
+                            <div key={nota.id} className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Chave ADN: {nota.chaveNacional ?? nota.protocolo}</span>
+                                        <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 font-bold uppercase">{nota.status}</span>
+                                        {nota.issRetido && (
+                                            <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 font-bold uppercase">ISS Retido</span>
+                                        )}
+                                    </div>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{nota.cliente}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">NBS: {nota.codigoNbs ?? '—'} · Trib.: {nota.codTributNacional ?? '—'}</p>
+                                </div>
+                                <div className="text-left md:text-right">
+                                    <p className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">
+                                        R$ {parseFloat(nota.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                                    </p>
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">ISS {nota.aliquotaIss ?? '—'}% · {formatarDataVisivel(nota.data)}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        )}
+    </div>
+)}
 
                 {/* ECRÃ 7: GESTOR DE EXTRATOS (INCLUIR) */}
                 {currentView === 'gestor-add' && hasAccess('gestor') && (
